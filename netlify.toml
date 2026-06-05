@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: NONE
+#
+# SPDX-License-Identifier: CC0-1.0
+
+# Netlify configuration for deploying a test build of PokéRogue (e.g. to verify the
+# iOS save-export fix on a real iPhone over HTTPS).
+#
+# The production `vite build` intentionally does NOT bundle the game's assets or
+# locales (`publicDir` is `false`); on the official server those are deployed
+# alongside the build. So after building we copy the `assets/` and `locales/` git
+# submodules into the publish directory, matching the layout the app expects at
+# runtime (`images/...`, `audio/...`, `./locales/...`).
+#
+# Netlify fetches the public git submodules automatically during the build.
+
+[build]
+  command = "pnpm build && cp -r assets/. dist/ && mkdir -p dist/locales && cp -r locales/. dist/locales/"
+  publish = "dist"
+
+[build.environment]
+  # Matches the version pinned in .nvmrc / package.json engines.
+  NODE_VERSION = "24.9.0"
