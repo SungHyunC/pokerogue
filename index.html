@@ -44,17 +44,24 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<link rel="stylesheet" type="text/css" href="./index.css" />
 	<link rel="manifest" href="./manifest.webmanifest">
   <script>
+    // Service worker is disabled for self-hosted / offline builds. It aggressively
+    // caches the whole app, which makes new deploys fail to show up (especially on
+    // iOS Safari, where a stale worker keeps serving the old build). Instead of
+    // registering it, we actively unregister any previously-installed worker and
+    // clear its caches so existing installs self-heal and pick up the latest build.
     if ("serviceWorker" in navigator) {
-      window.addEventListener("load", function () {
-        navigator.serviceWorker.register("./service-worker.js").then(
-          function (registration) {
-            console.log("ServiceWorker registration successful");
-          },
-          function (err) {
-            console.log("ServiceWorker registration failed: ", err);
-          },
-        );
+      navigator.serviceWorker.getRegistrations().then(function (registrations) {
+        for (const registration of registrations) {
+          registration.unregister();
+        }
       });
+      if (window.caches && caches.keys) {
+        caches.keys().then(function (keys) {
+          for (const key of keys) {
+            caches.delete(key);
+          }
+        });
+      }
     }
 
     window.addEventListener('beforeinstallprompt', e => {
