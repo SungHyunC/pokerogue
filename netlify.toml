@@ -20,3 +20,10 @@
 [build.environment]
   # Matches the version pinned in .nvmrc / package.json engines.
   NODE_VERSION = "24.9.0"
+  # Run in offline mode. A self-hosted copy cannot use the official account server
+  # (https://api.pokerogue.net) because that server's CORS policy only allows the
+  # official origin, so login from another domain is blocked. Bypassing login makes
+  # the game fully playable with saves stored locally (localStorage); use the in-game
+  # Export/Import (iOS-friendly) to back up or move saves between devices.
+  # Overrides the VITE_BYPASS_LOGIN=0 default in .env.production.
+  VITE_BYPASS_LOGIN = "1"
