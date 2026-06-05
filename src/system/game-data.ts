@@ -1354,12 +1354,34 @@ export class GameData {
     }
 
     const encryptedData = AES.encrypt(data, saveKey);
+    const fileName = `${dataKey}.prsv`;
     const blob = new Blob([encryptedData.toString()], {
       type: "text/json",
     });
+
+    // iOS Safari ignores the `download` attribute on blob URLs, so a regular download link
+    // just opens the save data as text in a new tab instead of saving a file. Use the Web Share
+    // API instead so the user can save the backup to the Files app or send it to another app.
+    if (isIos() && typeof navigator.canShare === "function") {
+      const file = new File([blob], fileName, { type: blob.type });
+      if (navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], title: fileName });
+        } catch (err) {
+          // A cancelled share sheet throws an AbortError, which we treat as a no-op rather than a failure.
+          if (err instanceof DOMException && err.name === "AbortError") {
+            return false;
+          }
+          console.error("Failed to share save data:", err);
+          return false;
+        }
+        return true;
+      }
+    }
+
     const link = document.createElement("a");
     link.href = window.URL.createObjectURL(blob);
-    link.download = `${dataKey}.prsv`;
+    link.download = fileName;
     link.click();
     link.remove();
 
