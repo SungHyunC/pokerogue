@@ -14,7 +14,10 @@
 # Netlify fetches the public git submodules automatically during the build.
 
 [build]
-  command = "pnpm build && cp -r assets/. dist/ && mkdir -p dist/locales && cp -r locales/. dist/locales/"
+  # VITE_BYPASS_LOGIN is also inlined here (not only in [build.environment]) so the
+  # offline-mode flag is guaranteed to be in the build's process env regardless of
+  # how the host applies build.environment.
+  command = "VITE_BYPASS_LOGIN=1 pnpm build && cp -r assets/. dist/ && mkdir -p dist/locales && cp -r locales/. dist/locales/"
   publish = "dist"
 
 [build.environment]
